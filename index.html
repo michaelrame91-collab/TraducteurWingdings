@@ -51,6 +51,7 @@ textarea{
 #output{
   background:#fafafa;
   font-family:"Segoe UI Symbol","Arial Unicode MS",sans-serif;
+  letter-spacing:0.49em;
 }
 
 .controls{
@@ -98,12 +99,11 @@ button:hover{
   <textarea
     id="output"
     placeholder="Traduction..."
-    readonly
   ></textarea>
 </div>
 
 <div class="controls">
-  <button id="copyBtn">Copier la traduction</button>
+  <button id="copyBtn">Copier la phrase en Wingdings</button>
 </div>
 
 <script>
@@ -299,6 +299,12 @@ const map = {
   "þ":"🗹"
 };
 
+const reverseMap = {};
+
+for (const [key, value] of Object.entries(map)) {
+    reverseMap[value] = key;
+}
+
 const input = document.getElementById("input");
 const output = document.getElementById("output");
 const copyBtn = document.getElementById("copyBtn");
@@ -309,8 +315,59 @@ function translate(text){
     .join("");
 }
 
+function reverseTranslate(text){
+  let result = "";
+  let i = 0;
+
+  while (i < text.length){
+
+    let found = false;
+
+    for (let len = 3; len >= 1; len--){
+
+      const part = text.substring(i, i + len);
+
+      if(reverseMap[part]){
+        result += reverseMap[part];
+        i += len;
+        found = true;
+        break;
+      }
+
+    }
+
+    if(!found){
+      result += text[i];
+      i++;
+    }
+
+  }
+
+  return result;
+}
+
+let updating = false;
+
 input.addEventListener("input", () => {
+
+  if(updating) return;
+  updating = true;
+
   output.value = translate(input.value);
+
+  updating = false;
+
+});
+
+output.addEventListener("input", () => {
+
+  if(updating) return;
+  updating = true;
+
+  input.value = reverseTranslate(output.value);
+
+  updating = false;
+
 });
 
 copyBtn.addEventListener("click", async () => {
@@ -319,7 +376,7 @@ copyBtn.addEventListener("click", async () => {
     copyBtn.textContent = "Copié !";
 
     setTimeout(() => {
-      copyBtn.textContent = "Copier la traduction";
+      copyBtn.textContent = "Copier la phrase en Wingdings";
     }, 1500);
 
   }catch(err){
